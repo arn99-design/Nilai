@@ -4,53 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penilaian SMAN 1 CIDAHU</title>
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- SheetJS for Excel processing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- html2pdf for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .glass-card {
-            background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
+        .glass-card { background: #ffffff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); }
         .table-custom th { background-color: #212529; color: #fff; font-weight: 500; }
-        .badge-malas { background-color: #ffc107; color: #000; }
-        .badge-rajin { background-color: #0d6efd; color: #fff; }
-        .badge-unggul { background-color: #198754; color: #fff; }
-        .badge-perhatian { background-color: #dc3545; color: #fff; }
-        .badge-katrol { background-color: #6c757d; color: #fff; }
-        .badge-maksimal { background-color: #06b6d4; color: #fff; }
         .action-btn { cursor: pointer; color: #0d6efd; transition: 0.2s; }
         .action-btn:hover { color: #0a58ca; }
-        
-        /* Specific print styling */
         .pdf-header { display: none; text-align: center; margin-bottom: 20px; }
-        
-        /* Loading Overlay */
-        #loadingOverlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8);
-            z-index: 9999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
+        #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: none; justify-content: center; align-items: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-<!-- Loading Overlay -->
 <div id="loadingOverlay">
-    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-    <h5 class="mt-3 fw-bold text-dark" id="loadingText">Menyinkronkan data dengan Google Sheets...</h5>
+    <div class="spinner-border text-primary" role="status"></div>
+    <h5 class="mt-3 fw-bold text-dark" id="loadingText">Memproses...</h5>
 </div>
 
 <div class="container-fluid py-5 px-4">
@@ -59,48 +31,32 @@
     </div>
 
     <div class="row g-4">
-        <!-- Sidebar / Controls -->
         <div class="col-lg-3">
-            <div class="glass-card p-4 mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-cloud-sync-fill text-primary"></i> Sinkronisasi Cloud</h5>
-                <p class="small text-muted mb-3">Simpan dan muat data langsung ke Google Sheets Anda.</p>
-                
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">URL Web App Google Script:</label>
-                    <input type="text" id="urlWebApp" class="form-control form-control-sm" placeholder="Paste URL Web App di sini...">
-                </div>
-                
-                <div class="d-grid gap-2">
-                    <button class="btn btn-primary fw-bold btn-sm" onclick="simpanKeCloud()">
-                        <i class="bi bi-cloud-arrow-up"></i> Simpan ke Sheets
-                    </button>
-                    <button class="btn btn-outline-primary fw-bold btn-sm" onclick="muatDariCloud()">
-                        <i class="bi bi-cloud-arrow-down"></i> Muat dari Sheets
-                    </button>
-                </div>
-            </div>
-
             <div class="glass-card p-4 h-100">
-                <h5 class="fw-bold mb-3"><i class="bi bi-gear-fill text-primary"></i> Panel Kontrol File</h5>
+                <h5 class="fw-bold mb-3"><i class="bi bi-gear-fill text-primary"></i> Panel Kontrol</h5>
                 
                 <div class="d-grid gap-2">
+                    <button class="btn btn-warning fw-bold btn-sm text-white" onclick="bersihkanData()">
+                        <i class="bi bi-trash"></i> Bersihkan Semua Data
+                    </button>
+                    <hr>
+                    
+                    <!-- TOMBOL SIMPAN KE GOOGLE SHEETS -->
+                    <button class="btn btn-primary fw-bold btn-sm mb-2" onclick="simpanKeGoogleSheets()">
+                        <i class="bi bi-cloud-arrow-up"></i> Simpan ke Spreadsheet
+                    </button>
+                    
                     <button class="btn btn-outline-secondary fw-bold btn-sm" onclick="downloadFormat()">
                         <i class="bi bi-file-earmark-arrow-down"></i> Download Format Excel
                     </button>
-                    
-                    <div>
-                        <label for="fileUpload" class="btn btn-secondary w-100 mb-0 fw-bold btn-sm">
-                            <i class="bi bi-file-earmark-arrow-up"></i> Upload Excel Lokal
-                        </label>
-                        <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv" class="d-none" onchange="handleFileUpload(event)">
-                    </div>
-
+                    <label for="fileUpload" class="btn btn-secondary w-100 mb-0 fw-bold btn-sm">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Upload Excel Lokal
+                    </label>
+                    <input type="file" id="fileUpload" accept=".xlsx, .xls, .csv" class="d-none" onchange="handleFileUpload(event)">
                     <hr>
-
-                    <button class="btn btn-success mt-2 fw-bold btn-sm" id="btnDownload" onclick="downloadHasil()" disabled>
+                    <button class="btn btn-success fw-bold btn-sm" id="btnDownload" onclick="downloadHasil()" disabled>
                         <i class="bi bi-file-excel"></i> Export Hasil (Excel)
                     </button>
-                    
                     <button class="btn btn-danger fw-bold btn-sm" id="btnPdf" onclick="exportPDF()" disabled>
                         <i class="bi bi-file-pdf-fill"></i> Export Hasil (PDF)
                     </button>
@@ -108,11 +64,8 @@
             </div>
         </div>
 
-        <!-- Main Table & Stats -->
         <div class="col-lg-9">
             <div class="glass-card p-4 h-100" id="areaPrint">
-                
-                <!-- Hidden Header for PDF -->
                 <div class="pdf-header" id="pdfHeader">
                     <h3 class="fw-bold m-0">Laporan Penilaian Ekonomi</h3>
                     <h4 class="text-muted m-0">SMAN 1 CIDAHU</h4>
@@ -120,262 +73,86 @@
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center mb-4" id="tableHeaderTitle">
-                    <h5 class="fw-bold m-0"><i class="bi bi-table text-success"></i> Data Rapor & Kalkulasi</h5>
+                    <h5 class="fw-bold m-0"><i class="bi bi-table text-success"></i> Data Rapor</h5>
                     <span class="badge bg-secondary" id="countData">0 Siswa</span>
                 </div>
 
-                <!-- Table Container -->
                 <div class="table-responsive border rounded" id="tableContainer" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-hover table-custom align-middle m-0">
                         <thead class="sticky-top">
                             <tr>
                                 <th>Nama Siswa</th>
-                                <th class="text-center">Ulangan<br><small>(50%)</small></th>
-                                <th class="text-center">Aktif<br><small>(20%)</small></th>
-                                <th class="text-center">Sikap<br><small>(15%)</small></th>
-                                <th class="text-center">Hadir<br><small>(15%)</small></th>
-                                <th class="text-center text-muted"><small>Nilai Murni</small></th>
-                                <th class="text-center bg-primary text-white">N. Rapor<br><small>(65-85)</small></th>
-                                <th class="text-center">Kategori Status</th>
+                                <th class="text-center">Ulangan</th>
+                                <th class="text-center">Aktif</th>
+                                <th class="text-center">Sikap</th>
+                                <th class="text-center">Hadir</th>
+                                <th class="text-center">N. Rapor</th>
                                 <th class="text-center aksi-col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="tabelHasil">
-                            <tr>
-                                <td colspan="9" class="text-center py-5 text-muted">
-                                    <i class="bi bi-inboxes fs-2 d-block mb-2"></i> Belum ada data. Silakan muat dari Cloud atau upload Excel Anda.
-                                </td>
-                            </tr>
+                            <tr><td colspan="7" class="text-center py-5 text-muted">Belum ada data.</td></tr>
                         </tbody>
                     </table>
                 </div>
                 
-                <!-- Summary Statistics -->
                 <div class="row mt-4" id="summaryStats" style="display: none;">
-                    <div class="col-md-4">
-                        <div class="alert alert-info text-center m-0 py-2">
-                            <div class="small fw-bold text-uppercase text-info">Rata-Rata Kelas</div>
-                            <div class="fs-3 fw-bold text-dark" id="statAvg">-</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="alert alert-success text-center m-0 py-2">
-                            <div class="small fw-bold text-uppercase text-success">Nilai Tertinggi</div>
-                            <div class="fs-3 fw-bold text-dark" id="statMax">-</div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="alert alert-warning text-center m-0 py-2">
-                            <div class="small fw-bold text-uppercase text-warning" style="color: #d39e00 !important;">Nilai Terendah</div>
-                            <div class="fs-3 fw-bold text-dark" id="statMin">-</div>
-                        </div>
-                    </div>
+                    <div class="col-4"><div class="alert alert-info text-center py-2"><div class="small fw-bold">Rata-Rata</div><div class="fs-4 fw-bold" id="statAvg">-</div></div></div>
+                    <div class="col-4"><div class="alert alert-success text-center py-2"><div class="small fw-bold">Tertinggi</div><div class="fs-4 fw-bold" id="statMax">-</div></div></div>
+                    <div class="col-4"><div class="alert alert-warning text-center py-2"><div class="small fw-bold">Terendah</div><div class="fs-4 fw-bold" id="statMin">-</div></div></div>
                 </div>
-
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Edit -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="editModalLabel"><i class="bi bi-pencil-square text-primary"></i> Edit Nilai Siswa</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editIndex">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nama Siswa</label>
-                    <input type="text" class="form-control" id="editNama" required>
-                </div>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">Ulangan (50%)</label>
-                        <input type="number" class="form-control" id="editUlangan" min="0" max="100" required>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">Keaktifan (20%)</label>
-                        <input type="number" class="form-control" id="editAktif" min="0" max="100" required>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">Sikap (15%)</label>
-                        <input type="number" class="form-control" id="editSikap" min="0" max="100" required>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <label class="form-label fw-bold">Kehadiran (15%)</label>
-                        <input type="number" class="form-control" id="editHadir" min="0" max="100" required>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary fw-bold" onclick="simpanEdit()">Simpan Perubahan</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     let dataSiswa = [];
-    let editModal;
 
-    document.addEventListener("DOMContentLoaded", () => {
-        editModal = new bootstrap.Modal(document.getElementById('editModal'));
-        
-        // Load Web App URL dari Local Storage jika pernah diisi sebelumnya
-        const savedUrl = localStorage.getItem('urlWebApp');
-        if (savedUrl) {
-            document.getElementById('urlWebApp').value = savedUrl;
-        }
-    });
-
-    // ----------------------------------------------------
-    // FITUR CLOUD SYNC (GOOGLE SHEETS)
-    // ----------------------------------------------------
-
-    function showLoading(text) {
-        document.getElementById('loadingText').innerText = text;
-        document.getElementById('loadingOverlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loadingOverlay').style.display = 'none';
-    }
-
-    function simpanKeCloud() {
-        const url = document.getElementById('urlWebApp').value.trim();
-        if (!url) {
-            alert("Harap masukkan URL Web App Google Script terlebih dahulu!");
-            return;
-        }
+    // FUNGSI MENYIMPAN KE GOOGLE SHEETS
+    async function simpanKeGoogleSheets() {
         if (dataSiswa.length === 0) {
-            alert("Tidak ada data untuk disimpan.");
-            return;
-        }
-
-        // Simpan URL ke Local Storage agar tidak perlu ketik ulang besok
-        localStorage.setItem('urlWebApp', url);
-
-        // Siapkan data untuk dikirim (termasuk hasil kalkulasi)
-        const payload = [
-            ["Nama Siswa", "Ulangan", "Keaktifan", "Sikap", "Kehadiran", "Nilai Murni", "Nilai Rapor", "Kategori Status"]
-        ];
-        dataSiswa.forEach(s => {
-            payload.push([s.nama, s.ulangan, s.aktif, s.sikap, s.hadir, s.nilaiMurni, s.nilaiAkhir, s.kategori]);
-        });
-
-        showLoading("Menyimpan data ke Google Sheets...");
-
-        fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(payload),
-            mode: 'no-cors' // Menghindari masalah CORS saat post dari local HTML
-        })
-        .then(() => {
-            hideLoading();
-            alert("Data berhasil disimpan ke Google Sheets!");
-        })
-        .catch(err => {
-            hideLoading();
-            alert("Terjadi kesalahan saat menyimpan: " + err);
-        });
-    }
-
-    function muatDariCloud() {
-        const url = document.getElementById('urlWebApp').value.trim();
-        if (!url) {
-            alert("Harap masukkan URL Web App Google Script terlebih dahulu!");
+            alert("Tidak ada data untuk disimpan ke Spreadsheet.");
             return;
         }
         
-        localStorage.setItem('urlWebApp', url);
-        showLoading("Mengambil data dari Google Sheets...");
+        document.getElementById('loadingText').innerText = "Menyimpan ke Spreadsheet...";
+        document.getElementById('loadingOverlay').style.display = 'flex';
 
-        fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            hideLoading();
-            if (!data || data.length <= 1) {
-                alert("Spreadsheet kosong atau hanya berisi header.");
-                return;
-            }
-
-            dataSiswa = [];
-            // Lewati baris pertama (header)
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row[0]) continue; // skip nama kosong
-
-                dataSiswa.push({
-                    nama: row[0],
-                    ulangan: parseFloat(row[1]) || 0,
-                    aktif: parseFloat(row[2]) || 0,
-                    sikap: parseFloat(row[3]) || 0,
-                    hadir: parseFloat(row[4]) || 0
-                });
-            }
-            renderTabel();
-            alert("Data berhasil dimuat!");
-        })
-        .catch(err => {
-            hideLoading();
-            alert("Gagal memuat data. Pastikan URL benar dan Web App memiliki izin akses 'Anyone'.\nDetail: " + err);
+        // URL App Script yang sudah Anda berikan
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbzKg4sBZtCFCElrQUXMc3d3Ne-FDP7oldheetWb9n79bajqbOPy4vUAjQ1PoZrbEmin/exec"; 
+        
+        // Format payload array 2D
+        const payload = [["Nama Siswa", "Ulangan", "Keaktifan", "Sikap", "Kehadiran", "Nilai Akhir Rapor"]];
+        dataSiswa.forEach(s => {
+            const murni = Math.round((s.ulangan * 0.5) + (s.aktif * 0.2) + (s.sikap * 0.15) + (s.hadir * 0.15));
+            const akhir = Math.max(65, Math.min(85, murni));
+            payload.push([s.nama, s.ulangan, s.aktif, s.sikap, s.hadir, akhir]);
         });
+
+        try {
+            await fetch(webAppUrl, {
+                method: "POST",
+                mode: "no-cors", // Cegah blokir CORS dari browser
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(payload)
+            });
+            document.getElementById('loadingOverlay').style.display = 'none';
+            alert("Selesai! Data berhasil dikirim ke Spreadsheet Anda.");
+        } catch (error) {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            console.error("Error:", error);
+            alert("Gagal koneksi. Pastikan internet lancar dan URL script valid.");
+        }
     }
 
-
-    // ----------------------------------------------------
-    // FITUR LOKAL (FILE EXCEL & PDF)
-    // ----------------------------------------------------
-
-    function downloadFormat() {
-        const template = [
-            ["Nama Siswa", "Ulangan", "Keaktifan", "Sikap", "Kehadiran"],
-            ["Budi Santoso", 85, 90, 80, 100],
-            ["Siti Aminah", 50, 60, 55, 70]
-        ];
-        const ws = XLSX.utils.aoa_to_sheet(template);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Format_Nilai");
-        XLSX.writeFile(wb, "Format_Input_Nilai.xlsx");
-    }
-
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, {type: 'array'});
-            const firstSheetName = workbook.SheetNames[0];
-            const worksheet = workbook.Sheets[firstSheetName];
-            const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-            
+    function bersihkanData() {
+        if(confirm("Apakah Anda yakin ingin menghapus seluruh data yang ada di layar?")) {
             dataSiswa = [];
-            for (let i = 1; i < json.length; i++) {
-                const row = json[i];
-                if (row.length === 0 || !row[0]) continue; 
-                dataSiswa.push({
-                    nama: row[0] || "Tanpa Nama",
-                    ulangan: parseFloat(row[1]) || 0,
-                    aktif: parseFloat(row[2]) || 0,
-                    sikap: parseFloat(row[3]) || 0,
-                    hadir: parseFloat(row[4]) || 0
-                });
-            }
             renderTabel();
-            document.getElementById('fileUpload').value = '';
-        };
-        reader.readAsArrayBuffer(file);
+        }
     }
 
-    // Render Tabel & Kalkulasi (Termasuk Batasan 65-85)
     function renderTabel() {
         const tbody = document.getElementById('tabelHasil');
         const btnDownload = document.getElementById('btnDownload');
@@ -384,7 +161,7 @@
         const summaryStats = document.getElementById('summaryStats');
         
         if (dataSiswa.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-5 text-muted">Belum ada data.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">Belum ada data. Silakan upload file baru.</td></tr>';
             btnDownload.disabled = true;
             btnPdf.disabled = true;
             summaryStats.style.display = 'none';
@@ -394,45 +171,14 @@
 
         tbody.innerHTML = '';
         countData.innerText = dataSiswa.length + " Siswa";
-
-        let totalNilai = 0;
-        let maxNilai = -Infinity;
-        let minNilai = Infinity;
+        let total = 0, max = -Infinity, min = Infinity;
 
         dataSiswa.forEach((siswa, index) => {
-            const nilaiMurni = Math.round((siswa.ulangan * 0.5) + (siswa.aktif * 0.2) + (siswa.sikap * 0.15) + (siswa.hadir * 0.15));
-            const nilaiAkhir = Math.max(65, Math.min(85, nilaiMurni));
-            
-            siswa.nilaiMurni = nilaiMurni;
-            siswa.nilaiAkhir = nilaiAkhir;
-
-            totalNilai += nilaiAkhir;
-            if (nilaiAkhir > maxNilai) maxNilai = nilaiAkhir;
-            if (nilaiAkhir < minNilai) minNilai = nilaiAkhir;
-
-            let badge = "";
-            let badgeClass = "";
-
-            if (nilaiMurni > 85) {
-                badgeClass = "badge-maksimal";
-                badge = "Max Sekolah (" + nilaiMurni + ")";
-            } else if (nilaiMurni < 65) {
-                badgeClass = "badge-katrol";
-                badge = "Katrol (" + nilaiMurni + ")";
-            } else if (siswa.ulangan >= 75 && nilaiMurni < siswa.ulangan && (siswa.aktif < 65 || siswa.hadir < 70)) {
-                badgeClass = "badge-malas";
-                badge = "Terdiskon";
-            } else if (siswa.ulangan < 70 && nilaiMurni >= 75) {
-                badgeClass = "badge-rajin";
-                badge = "Pekerja Keras";
-            } else if (nilaiAkhir >= 80) {
-                badgeClass = "badge-unggul";
-                badge = "Unggul";
-            } else {
-                badgeClass = "badge-perhatian";
-                badge = "Perhatian";
-            }
-            siswa.kategori = badge;
+            const murni = Math.round((siswa.ulangan * 0.5) + (siswa.aktif * 0.2) + (siswa.sikap * 0.15) + (siswa.hadir * 0.15));
+            const akhir = Math.max(65, Math.min(85, murni));
+            total += akhir;
+            if (akhir > max) max = akhir;
+            if (akhir < min) min = akhir;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -441,122 +187,64 @@
                 <td class="text-center">${siswa.aktif}</td>
                 <td class="text-center">${siswa.sikap}</td>
                 <td class="text-center">${siswa.hadir}</td>
-                <td class="text-center text-muted" style="font-size:0.9rem;">${nilaiMurni}</td>
-                <td class="text-center fw-bold text-primary fs-5 bg-light">${nilaiAkhir}</td>
-                <td class="text-center"><span class="badge ${badgeClass}">${badge}</span></td>
-                <td class="text-center aksi-col">
-                    <i class="bi bi-pencil-square action-btn fs-5" onclick="bukaModalEdit(${index})" title="Edit"></i>
-                    <i class="bi bi-trash action-btn fs-5 text-danger ms-2" onclick="hapusSiswa(${index})" title="Hapus"></i>
-                </td>
+                <td class="text-center fw-bold text-primary">${akhir}</td>
+                <td class="text-center aksi-col"><i class="bi bi-trash action-btn text-danger" onclick="hapusSiswa(${index})"></i></td>
             `;
             tbody.appendChild(tr);
         });
 
-        const rataRata = (totalNilai / dataSiswa.length).toFixed(2);
-        document.getElementById('statAvg').innerText = rataRata;
-        document.getElementById('statMax').innerText = maxNilai;
-        document.getElementById('statMin').innerText = minNilai;
+        document.getElementById('statAvg').innerText = (total/dataSiswa.length).toFixed(1);
+        document.getElementById('statMax').innerText = max;
+        document.getElementById('statMin').innerText = min;
         summaryStats.style.display = 'flex';
-
         btnDownload.disabled = false;
         btnPdf.disabled = false;
     }
 
-    // Modal Edit & Hapus Lokal
-    function bukaModalEdit(index) {
-        const siswa = dataSiswa[index];
-        document.getElementById('editIndex').value = index;
-        document.getElementById('editNama').value = siswa.nama;
-        document.getElementById('editUlangan').value = siswa.ulangan;
-        document.getElementById('editAktif').value = siswa.aktif;
-        document.getElementById('editSikap').value = siswa.sikap;
-        document.getElementById('editHadir').value = siswa.hadir;
-        editModal.show();
-    }
-
-    function simpanEdit() {
-        const index = document.getElementById('editIndex').value;
-        dataSiswa[index].nama = document.getElementById('editNama').value;
-        dataSiswa[index].ulangan = parseFloat(document.getElementById('editUlangan').value) || 0;
-        dataSiswa[index].aktif = parseFloat(document.getElementById('editAktif').value) || 0;
-        dataSiswa[index].sikap = parseFloat(document.getElementById('editSikap').value) || 0;
-        dataSiswa[index].hadir = parseFloat(document.getElementById('editHadir').value) || 0;
-        
-        editModal.hide();
+    function hapusSiswa(index) {
+        dataSiswa.splice(index, 1);
         renderTabel();
     }
 
-    function hapusSiswa(index) {
-        if(confirm("Yakin ingin menghapus data siswa ini?")) {
-            dataSiswa.splice(index, 1);
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1});
+            for (let i = 1; i < json.length; i++) {
+                if(json[i][0]) dataSiswa.push({nama: json[i][0], ulangan: json[i][1], aktif: json[i][2], sikap: json[i][3], hadir: json[i][4]});
+            }
             renderTabel();
-        }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    
+    function downloadFormat() {
+        const ws = XLSX.utils.aoa_to_sheet([["Nama Siswa", "Ulangan", "Keaktifan", "Sikap", "Kehadiran"]]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Format");
+        XLSX.writeFile(wb, "Format_Input_Nilai.xlsx");
     }
 
     function downloadHasil() {
-        if (dataSiswa.length === 0) return;
-        const wsData = [["Nama Siswa", "Ulangan", "Keaktifan", "Sikap", "Kehadiran", "Nilai Murni", "Nilai Rapor (65-85)", "Kategori"]];
-        dataSiswa.forEach(s => wsData.push([s.nama, s.ulangan, s.aktif, s.sikap, s.hadir, s.nilaiMurni, s.nilaiAkhir, s.kategori]));
-        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const ws = XLSX.utils.json_to_sheet(dataSiswa);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Hasil_SMAN1CIDAHU");
-        XLSX.writeFile(wb, "Penilaian_SMAN_1_CIDAHU.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Hasil");
+        XLSX.writeFile(wb, "Hasil_Penilaian.xlsx");
     }
 
     function exportPDF() {
         const element = document.getElementById('areaPrint');
         const aksiCols = document.querySelectorAll('.aksi-col');
-        const pdfHeader = document.getElementById('pdfHeader');
-        const tableContainer = document.getElementById('tableContainer');
-        const tableHeaderTitle = document.getElementById('tableHeaderTitle');
-        
         aksiCols.forEach(el => el.style.display = 'none');
-        tableHeaderTitle.style.display = 'none';
-        pdfHeader.style.display = 'block';
         
-        const originalMaxHeight = tableContainer.style.maxHeight;
-        const originalOverflow = tableContainer.style.overflowY;
-        tableContainer.style.maxHeight = 'none';
-        tableContainer.style.overflowY = 'visible';
-
-        const opt = {
-            margin:       [0.5, 0.5, 0.5, 0.5],
-            filename:     'Laporan_Nilai_SMAN_1_CIDAHU.pdf',
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-        };
-
-        html2pdf().set(opt).from(element).save().then(() => {
+        html2pdf().from(element).save('Laporan_Siswa.pdf').then(() => {
             aksiCols.forEach(el => el.style.display = '');
-            tableHeaderTitle.style.display = 'flex';
-            pdfHeader.style.display = 'none';
-            tableContainer.style.maxHeight = originalMaxHeight;
-            tableContainer.style.overflowY = originalOverflow;
         });
     }
-	async function simpanKeGoogleSheets(dataSiswa) {
-    const webAppUrl = "https://script.google.com/macros/s/AKfycbzKg4sBZtCFCElrQUXMc3d3Ne-FDP7oldheetWb9n79bajqbOPy4vUAjQ1PoZrbEmin/exec"; // Ganti dengan URL deployment Anda
-    
-    // Format data ke bentuk array dua dimensi (untuk Sheets)
-    const payload = [["Nama", "Ulangan", "Aktif", "Sikap", "Hadir", "Nilai Akhir"]];
-    dataSiswa.forEach(s => {
-        payload.push([s.nama, s.ulangan, s.aktif, s.sikap, s.hadir, s.nilaiAkhir]);
-    });
-
-    try {
-        const response = await fetch(webAppUrl, {
-            method: "POST",
-            mode: "no-cors", // Penting untuk koneksi dari luar
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        alert("Data berhasil dikirim ke Google Sheets!");
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Gagal koneksi. Pastikan Web App disetting 'Anyone' dan 'Execute as Me'");
-    }
-}
 </script>
 </body>
 </html>
